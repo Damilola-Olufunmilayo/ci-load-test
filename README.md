@@ -1,4 +1,3 @@
-# ci-load-test
 # CI Load Test Project
 
 Automated CI/CD pipeline for Kubernetes load testing with multi-node cluster provisioning and performance validation.
