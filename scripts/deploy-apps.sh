@@ -1,9 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "======================================"
-echo "🚀 Deploying Applications"
-echo "======================================"
+echo " Deploying Applications"
 
 # Apply all Kubernetes manifests
 echo "Applying foo deployment..."
@@ -21,7 +19,7 @@ echo "⏳ Waiting for deployments to be ready..."
 # Wait for deployments to be available
 echo "Waiting for foo-echo deployment..."
 kubectl wait --for=condition=available --timeout=180s deployment/foo-echo || {
-  echo "❌ foo-echo deployment failed to become ready"
+  echo "foo-echo deployment failed to become ready"
   kubectl describe deployment foo-echo
   kubectl get pods -l app=foo-echo
   exit 1
@@ -29,7 +27,7 @@ kubectl wait --for=condition=available --timeout=180s deployment/foo-echo || {
 
 echo "Waiting for bar-echo deployment..."
 kubectl wait --for=condition=available --timeout=180s deployment/bar-echo || {
-  echo "❌ bar-echo deployment failed to become ready"
+  echo "bar-echo deployment failed to become ready"
   kubectl describe deployment bar-echo
   kubectl get pods -l app=bar-echo
   exit 1
@@ -38,7 +36,7 @@ kubectl wait --for=condition=available --timeout=180s deployment/bar-echo || {
 # Wait for all pods to be ready
 echo "Waiting for all foo-echo pods to be ready..."
 kubectl wait --for=condition=ready pod -l app=foo-echo --timeout=180s || {
-  echo "❌ foo-echo pods failed to become ready"
+  echo "foo-echo pods failed to become ready"
   kubectl get pods -l app=foo-echo
   kubectl logs -l app=foo-echo --tail=50
   exit 1
@@ -46,7 +44,7 @@ kubectl wait --for=condition=ready pod -l app=foo-echo --timeout=180s || {
 
 echo "Waiting for all bar-echo pods to be ready..."
 kubectl wait --for=condition=ready pod -l app=bar-echo --timeout=180s || {
-  echo "❌ bar-echo pods failed to become ready"
+  echo "bar-echo pods failed to become ready"
   kubectl get pods -l app=bar-echo
   kubectl logs -l app=bar-echo --tail=50
   exit 1
@@ -54,19 +52,16 @@ kubectl wait --for=condition=ready pod -l app=bar-echo --timeout=180s || {
 
 # Wait for ingress to be configured
 echo ""
-echo "⏳ Waiting for ingress to be configured..."
-sleep 15
-
-# Verify ingress exists
-kubectl get ingress echo-ingress -o wide || {
-  echo "❌ Ingress not found"
+echo "Waiting for ingress to be ready..."
+kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' --timeout=180s ingress/echo-ingress || {
+  echo "Ingress failed to become ready"
+  kubectl get ingress echo-ingress -o wide
+  kubectl describe ingress echo-ingress
   exit 1
 }
 
 echo ""
-echo "======================================"
-echo "🔍 Testing Connectivity"
-echo "======================================"
+echo "Testing Connectivity"
 
 # Test connectivity with retries
 max_attempts=30
@@ -81,22 +76,20 @@ while [ $attempt -lt $max_attempts ]; do
   foo_response=$(curl -s -H "Host: foo.localhost" http://localhost/ || echo "error")
   if echo "$foo_response" | grep -q "foo"; then
     foo_ready=true
-    echo "✅ foo.localhost is responding correctly"
+    echo "foo.localhost is responding correctly"
   fi
   
   # Test bar endpoint
   bar_response=$(curl -s -H "Host: bar.localhost" http://localhost/ || echo "error")
   if echo "$bar_response" | grep -q "bar"; then
     bar_ready=true
-    echo "✅ bar.localhost is responding correctly"
+    echo "bar.localhost is responding correctly"
   fi
   
   # Check if both are ready
   if [ "$foo_ready" = true ] && [ "$bar_ready" = true ]; then
     echo ""
-    echo "======================================"
-    echo "✅ All Applications Healthy!"
-    echo "======================================"
+    echo "All Applications Healthy!"
     break
   fi
   
@@ -107,7 +100,7 @@ done
 # Final check
 if [ "$foo_ready" = false ] || [ "$bar_ready" = false ]; then
   echo ""
-  echo "❌ Endpoints did not become ready in time"
+  echo "Endpoints did not become ready in time"
   echo "Foo ready: $foo_ready"
   echo "Bar ready: $bar_ready"
   echo ""
