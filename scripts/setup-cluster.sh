@@ -1,9 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "======================================"
-echo "📦 Setting up KinD Cluster"
-echo "======================================"
+echo "Setting up KinD Cluster"
 
 # Install KinD
 echo "Installing KinD..."
@@ -43,11 +41,11 @@ nodes:
 EOF
 
 # Create the cluster
-echo "🚀 Creating KinD cluster with 3 nodes (1 control-plane + 2 workers)..."
+echo "Creating KinD cluster with 3 nodes (1 control-plane + 2 workers)..."
 kind create cluster --name load-test-cluster --config=/tmp/kind-config.yaml --wait 300s
 
 # Verify cluster
-echo "✅ Cluster created successfully!"
+echo "Cluster created successfully!"
 kubectl cluster-info --context kind-load-test-cluster
 echo ""
 echo "Cluster nodes:"
@@ -55,9 +53,7 @@ kubectl get nodes -o wide
 
 # Install Nginx Ingress Controller
 echo ""
-echo "======================================"
-echo "🔧 Installing Nginx Ingress Controller"
-echo "======================================"
+echo "Installing Nginx Ingress Controller"
 
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.9.4/deploy/static/provider/kind/deploy.yaml
 
@@ -69,16 +65,13 @@ kubectl wait --namespace ingress-nginx \
   --timeout=300s
 
 # Verify ingress controller
-echo "✅ Ingress controller is ready!"
+echo "Ingress controller is ready!"
 kubectl get pods -n ingress-nginx
 kubectl get svc -n ingress-nginx
 
 # Final verification
 echo ""
-echo "======================================"
-echo "✅ Cluster Setup Complete!"
-echo "======================================"
+echo "Cluster Setup Complete!"
 echo "Nodes: $(kubectl get nodes --no-headers | wc -l)"
 echo "Namespaces: $(kubectl get namespaces --no-headers | wc -l)"
 echo "Ingress Controller: Running"
-echo "======================================"
