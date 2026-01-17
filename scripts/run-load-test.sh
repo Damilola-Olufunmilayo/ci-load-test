@@ -1,9 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "======================================"
-echo "📊 Load Testing Setup"
-echo "======================================"
+echo "Load Testing Setup"
 
 # Install k6
 echo "Installing k6 load testing tool..."
@@ -16,9 +14,7 @@ sudo apt-get install k6 -y
 k6 version
 
 echo ""
-echo "======================================"
-echo "🔥 Running Load Test"
-echo "======================================"
+echo "Running Load Test"
 
 # Create k6 load test script
 cat > /tmp/load-test.js << 'LOADTEST_EOF'
@@ -102,14 +98,12 @@ if [ ${PIPESTATUS[0]} -ne 0 ]; then
   echo "⚠️  Load test completed with some failures"
   test_status="⚠️ Completed with warnings"
 else
-  echo "✅ Load test completed successfully"
-  test_status="✅ Passed"
+  echo " Load test completed successfully"
+  test_status="Passed"
 fi
 
 echo ""
-echo "======================================"
-echo "📈 Generating Report"
-echo "======================================"
+echo "Generating Report"
 
 # Extract metrics from k6 output
 http_reqs=$(grep "http_reqs" /tmp/k6-output.txt | tail -1 | awk '{print $3}' || echo "N/A")
@@ -130,7 +124,7 @@ fi
 
 # Generate Markdown report
 cat > /tmp/load-test-results.md << REPORT_EOF
-## 🎯 Load Test Results - ${test_status}
+## Load Test Results - ${test_status}
 
 ### Test Configuration
 - **Test Duration**: 2 minutes (30s ramp-up → 1m sustained → 30s ramp-down)
@@ -141,7 +135,7 @@ cat > /tmp/load-test-results.md << REPORT_EOF
 
 ---
 
-### 📊 Performance Metrics
+### Performance Metrics
 
 | Metric | Value |
 |--------|-------|
@@ -151,7 +145,7 @@ cat > /tmp/load-test-results.md << REPORT_EOF
 | **Max Concurrent Users** | ${vus_max} |
 | **Total Iterations** | ${iterations} |
 
-### ⏱️ Response Time Statistics
+###  Response Time Statistics
 
 | Percentile | Duration |
 |------------|----------|
@@ -161,7 +155,7 @@ cat > /tmp/load-test-results.md << REPORT_EOF
 
 ---
 
-### 📋 Detailed k6 Output
+###  Detailed k6 Output
 
 <details>
 <summary>Click to expand full test results</summary>
@@ -174,7 +168,7 @@ $(cat /tmp/k6-output.txt)
 
 ---
 
-### ✅ Test Summary
+### Test Summary
 
 - **Status**: ${test_status}
 - **Cluster**: Multi-node Kubernetes (KinD)
@@ -182,7 +176,7 @@ $(cat /tmp/k6-output.txt)
 - **Services**: Both \`foo\` and \`bar\` deployments handled load successfully
 - **Routing**: Host-based routing verified under load
 
-### 🏗️ Infrastructure Details
+### Infrastructure Details
 
 - **Nodes**: 3 (1 control-plane + 2 workers)
 - **Replicas per service**: 2 pods each
@@ -190,13 +184,11 @@ $(cat /tmp/k6-output.txt)
 
 ---
 
-*🤖 Generated automatically by CI Load Test workflow*
-*📅 $(date -u '+%Y-%m-%d %H:%M:%S UTC')*
+* Generated automatically by CI Load Test workflow*
+*$(date -u '+%Y-%m-%d %H:%M:%S UTC')*
 REPORT_EOF
 
-echo "✅ Report generated successfully"
+echo "Report generated successfully"
 echo ""
 echo "Preview of report:"
-echo "======================================"
 cat /tmp/load-test-results.md
-echo "======================================"
